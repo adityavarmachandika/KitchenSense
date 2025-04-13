@@ -1,0 +1,1 @@
+{"root":["../src/index.ts","../src/controllers/signinauth.ts","../src/middleware/authware.ts","../src/routes/userroutes.ts"],"errors":true,"version":"5.8.3"}
