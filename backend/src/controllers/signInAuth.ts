@@ -1,8 +1,19 @@
 import { Request,Response } from "express"
 import { PrismaClient } from '@prisma/client';
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv"
+dotenv.config()
+
 
  const prisma = new PrismaClient()
 const signInAuth= async (req:Request,res:Response)=>{
+
+    const jwt_secret= process.env.JWT_SECRET
+    if (!jwt_secret) {
+        console.error("JWT_SECRET is undefined");
+        return res.status(500).json({ error: "Internal server error" });
+      }
+
     const {name,email,phoneNumber,password,role}=req.body
 
     if(!name || !email|| !phoneNumber|| !password || !role){
@@ -42,6 +53,12 @@ const signInAuth= async (req:Request,res:Response)=>{
             accountId:createAcc.id
         }
     })
-    res.status(201).json({"status":"user is created"})
+    const payload={
+        id:createUser.id,
+        phoneNumber:createUser.phoneNumber
+    }
+    const jwtToken= jwt.sign(payload,jwt_secret,{expiresIn:"1d"})
+
+    res.status(201).json({createAcc,createUser,jwtToken})
 }
 export default signInAuth

@@ -8,10 +8,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const prisma = new client_1.PrismaClient();
 const signInAuth = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const jwt_secret = process.env.JWT_SECRET;
+    if (!jwt_secret) {
+        console.error("JWT_SECRET is undefined");
+        return res.status(500).json({ error: "Internal server error" });
+    }
     const { name, email, phoneNumber, password, role } = req.body;
     if (!name || !email || !phoneNumber || !password || !role) {
         return res.status(400).json({ "error": "missing feilds" });
@@ -46,6 +57,11 @@ const signInAuth = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             accountId: createAcc.id
         }
     });
-    res.status(201).json({ "status": "user is created" });
+    const payload = {
+        id: createUser.id,
+        phoneNumber: createUser.phoneNumber
+    };
+    const jwtToken = jsonwebtoken_1.default.sign(payload, jwt_secret, { expiresIn: "1d" });
+    res.status(201).json({ createAcc, createUser, jwtToken });
 });
 exports.default = signInAuth;
