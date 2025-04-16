@@ -17,6 +17,7 @@ model Account{
   email String @unique
   password String
   users User[]
+  productinstance ProductInstance[]
 }
 model User{
   id Int @id @default(autoincrement())
@@ -25,4 +26,34 @@ model User{
   role String
   accountId Int
   account Account @relation(fields: [accountId], references: [id],onDelete: Cascade)
+  productinstance ProductInstance[]
+
+}
+
+model Category{
+  id Int @id @default(autoincrement())
+  name String 
+  Products Product[]
+}
+
+model Product{
+  id Int @id @default(autoincrement())
+  name String
+  measurment String
+  categoryId Int
+  category Category @relation(fields: [categoryId],references: [id])
+  productinstance ProductInstance[]
+}
+
+model ProductInstance{
+  id Int @id @default(autoincrement())
+  storage_location String
+  quantity String
+  expiry_date DateTime
+  productId Int
+  accountId Int
+  userId Int
+  product Product @relation(fields: [productId], references: [id])
+  account Account @relation(fields: [accountId], references: [id])
+  user User @relation(fields: [userId],references: [id])
 }

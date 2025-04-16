@@ -1,6 +1,6 @@
 import express, { Application,Request,Response } from "express";
 import cors from "cors"
-import userrouter from "./routes/userRoutes";
+import userrouter from "./routes/userAuthRoutes";
 const app:Application=express()
 
 app.use(express.json())

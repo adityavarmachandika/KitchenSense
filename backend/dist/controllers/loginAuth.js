@@ -30,7 +30,8 @@ const logInAuth = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
     });
     if (!userDetails) {
-        return res.status(401).json({ "error": "user not found " });
+        res.status(401).json({ "error": "user not found " });
+        return;
     }
     const payload = {
         id: userDetails.id,
@@ -39,10 +40,11 @@ const logInAuth = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const jwt_secret = process.env.JWT_SECRET;
     if (!jwt_secret) {
         console.error("JWT_SECRET is undefined");
-        return res.status(500).json({ error: "Internal server error" });
+        res.status(500).json({ error: "Internal server error" });
+        return;
     }
     const jsonToken = jsonwebtoken_1.default.sign(payload, jwt_secret, { expiresIn: '1d' });
-    return res.status(200).json({
+    res.status(200).json({
         "name": userDetails.name,
         "accountId": userDetails.accountId,
         "role": userDetails.role,

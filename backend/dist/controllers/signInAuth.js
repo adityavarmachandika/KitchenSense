@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.signInAuth = void 0;
 const client_1 = require("@prisma/client");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -21,40 +22,48 @@ const signInAuth = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const jwt_secret = process.env.JWT_SECRET;
     if (!jwt_secret) {
         console.error("JWT_SECRET is undefined");
-        return res.status(500).json({ error: "Internal server error" });
+        res.status(500).json({ error: "Internal server error" });
+        return;
     }
     const { name, email, phoneNumber, password, role } = req.body;
     if (!name || !email || !phoneNumber || !password || !role) {
-        return res.status(400).json({ "error": "missing feilds" });
+        res.status(400).json({ "error": "missing feilds" });
+        return;
     }
     const existaccount = yield prisma.account.findUnique({
         where: {
             email: email
         }
     });
-    if (existaccount) {
-        return res.status(409).json({ "error": "the email already exists" });
-    }
     const existuser = yield prisma.user.findUnique({
         where: {
             phoneNumber: phoneNumber
         }
     });
     if (existuser) {
-        return res.status(409).json({ "error": "the phone number already exists " });
+        res.status(409).json({ "error": "the phone number already exists " });
+        return;
     }
-    const createAcc = yield prisma.account.create({
-        data: {
-            email,
-            password
-        }
-    });
+    let acc_id;
+    let createAcc;
+    if (!existaccount) {
+        createAcc = yield prisma.account.create({
+            data: {
+                email,
+                password
+            }
+        });
+        acc_id = createAcc.id;
+    }
+    else {
+        acc_id = existaccount.id;
+    }
     const createUser = yield prisma.user.create({
         data: {
             name,
             phoneNumber,
             role,
-            accountId: createAcc.id
+            accountId: acc_id
         }
     });
     const payload = {
@@ -64,4 +73,5 @@ const signInAuth = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const jwtToken = jsonwebtoken_1.default.sign(payload, jwt_secret, { expiresIn: "1d" });
     res.status(201).json({ createAcc, createUser, jwtToken });
 });
-exports.default = signInAuth;
+exports.signInAuth = signInAuth;
+exports.default = exports.signInAuth;

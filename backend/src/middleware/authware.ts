@@ -19,6 +19,10 @@ const protect =async(req:Request,res:Response,next:NextFunction)=>{
             res.status(401).json({"error":" not authorized"})
         }
     }
+    else{
+         res.status(404).json({"error":"login first"})
+         return;
+    }
 }
 
 export default protect

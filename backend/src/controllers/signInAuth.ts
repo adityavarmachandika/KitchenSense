@@ -6,18 +6,20 @@ dotenv.config()
 
 
  const prisma = new PrismaClient()
-const signInAuth= async (req:Request,res:Response)=>{
+export const signInAuth= async (req:Request,res:Response):Promise<void>=>{
 
     const jwt_secret= process.env.JWT_SECRET
     if (!jwt_secret) {
         console.error("JWT_SECRET is undefined");
-        return res.status(500).json({ error: "Internal server error" });
+         res.status(500).json({ error: "Internal server error" });
+         return;
       }
 
     const {name,email,phoneNumber,password,role}=req.body
 
     if(!name || !email|| !phoneNumber|| !password || !role){
-        return res.status(400).json({"error":"missing feilds"})
+        res.status(400).json({"error":"missing feilds"})
+        return ;
     }
 
     const existaccount=await prisma.account.findUnique({
@@ -26,9 +28,6 @@ const signInAuth= async (req:Request,res:Response)=>{
         }
     })
 
-    if(existaccount){
-        return res.status(409).json({"error":"the email already exists"})
-    }
 
     const existuser=await prisma.user.findUnique({
         where:{
@@ -36,21 +35,30 @@ const signInAuth= async (req:Request,res:Response)=>{
         }
     })
     if(existuser){
-        return res.status(409).json({"error":"the phone number already exists "})
+         res.status(409).json({"error":"the phone number already exists "})
+         return;
+    }
+    let acc_id;
+    let createAcc
+    if(!existaccount){
+        createAcc= await prisma.account.create({
+            data:{
+                email,
+                password
+            }
+        })
+        acc_id=createAcc.id
+    }
+    else{
+        acc_id=existaccount.id
     }
 
-    const createAcc= await prisma.account.create({
-        data:{
-            email,
-            password
-        }
-    })
     const createUser=await prisma.user.create({
         data:{
             name,
             phoneNumber,
             role,
-            accountId:createAcc.id
+            accountId:acc_id
         }
     })
     const payload={
